@@ -21,12 +21,15 @@ import static com.github.tomakehurst.wiremock.common.Strings.stringFromBytes;
 import static org.assertj.core.api.Assertions.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.IntNode;
+import com.github.tomakehurst.wiremock.common.InputStreamSource;
 import com.github.tomakehurst.wiremock.common.Json;
 import com.github.tomakehurst.wiremock.common.JsonException;
+import com.github.tomakehurst.wiremock.common.StreamSources;
 import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.Test;
 
@@ -44,6 +47,21 @@ class BodyTest {
     assertThat(body.isJson(), is(false));
     assertThatThrownBy(body::asJson).isInstanceOf(JsonException.class);
     assertThat(body.asBase64(), is(encodeBase64(bytesFromString(content))));
+  }
+
+  @Test
+  void constructsFromInputStreamSource() {
+    String content = "this content";
+    InputStreamSource source = StreamSources.forBytes(content.getBytes(StandardCharsets.UTF_8));
+    Body body = new Body(source);
+
+    assertThat(body.asString(), is(content));
+    assertThat(body.isBinary(), is(true));
+    assertThat(body.asBytes(), is(bytesFromString(content)));
+    assertThat(body.isJson(), is(false));
+    assertThatThrownBy(body::asJson).isInstanceOf(JsonException.class);
+    assertThat(body.asBase64(), is(encodeBase64(bytesFromString(content))));
+    assertThat(body.asInputStream(), is(notNullValue()));
   }
 
   @Test

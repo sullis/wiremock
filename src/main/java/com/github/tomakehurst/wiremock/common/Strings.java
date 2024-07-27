@@ -19,12 +19,17 @@ import static java.lang.Math.max;
 import static java.lang.System.lineSeparator;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.apache.commons.io.IOUtils;
+
 
 public class Strings {
 
@@ -278,6 +283,14 @@ public class Strings {
     final char[] buf = new char[repeat];
     Arrays.fill(buf, ch);
     return new String(buf);
+  }
+
+  public static String stringFromInputStream(InputStream stream) {
+    try {
+      return IOUtils.toString(stream, UTF_8);
+    } catch (IOException ex) {
+      throw new RuntimeException(ex);
+    }
   }
 
   public static String stringFromBytes(byte[] bytes) {

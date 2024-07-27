@@ -17,19 +17,25 @@ package com.github.tomakehurst.wiremock.http;
 
 import static com.github.tomakehurst.wiremock.common.Encoding.decodeBase64;
 import static com.github.tomakehurst.wiremock.common.Encoding.encodeBase64;
-import static com.github.tomakehurst.wiremock.common.Strings.stringFromBytes;
+import static com.github.tomakehurst.wiremock.common.Strings.stringFromInputStream;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.NullNode;
 import com.github.tomakehurst.wiremock.common.ContentTypes;
+import com.github.tomakehurst.wiremock.common.InputStreamSource;
 import com.github.tomakehurst.wiremock.common.Json;
+import com.github.tomakehurst.wiremock.common.StreamSources;
 import com.github.tomakehurst.wiremock.common.Strings;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Objects;
+import org.apache.commons.io.IOUtils;
+
 
 public class Body {
 
-  private final byte[] content;
+  private final InputStreamSource content;
   private final boolean binary;
   private final boolean json;
 
@@ -37,26 +43,30 @@ public class Body {
     this(content, true);
   }
 
+  public Body(InputStreamSource stream) {
+    this.content = stream;
+    this.binary = true;
+    this.json = false;
+  }
+
   public Body(String content) {
-    this.content = Strings.bytesFromString(content);
+    this.content = StreamSources.forBytes(Strings.bytesFromString(content));
     binary = false;
     json = false;
   }
 
   private Body(byte[] content, boolean binary) {
-    this.content = content;
-    this.binary = binary;
-    json = false;
+    this(content, binary, false);
   }
 
   private Body(byte[] content, boolean binary, boolean json) {
-    this.content = content;
+    this.content = StreamSources.forBytes(content);
     this.binary = binary;
     this.json = json;
   }
 
   private Body(JsonNode content) {
-    this.content = Json.toByteArray(content);
+    this.content = StreamSources.forBytes(Json.toByteArray(content));
     binary = false;
     json = true;
   }
@@ -94,15 +104,23 @@ public class Body {
   }
 
   public String asString() {
-    return content != null ? stringFromBytes(content) : null;
+    return content != null ? stringFromInputStream(content.getStream()) : null;
   }
 
   public byte[] asBytes() {
-    return content != null ? content : null;
+    try {
+      return content != null ? IOUtils.toByteArray(content.getStream()) : null;
+    } catch (IOException ex) {
+      throw new RuntimeException(ex);
+    }
+  }
+
+  public InputStream asInputStream() {
+    return content != null ? content.getStream() : null;
   }
 
   public String asBase64() {
-    return encodeBase64(content);
+    return encodeBase64(asBytes());
   }
 
   public boolean isBinary() {
@@ -130,12 +148,12 @@ public class Body {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
     Body body = (Body) o;
-    return Objects.equals(binary, body.binary) && Arrays.equals(content, body.content);
+    return Objects.equals(binary, body.binary) && Arrays.equals(asBytes(), body.asBytes());
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(Arrays.hashCode(content), binary);
+    return Objects.hash(Arrays.hashCode(asBytes()), binary);
   }
 
   @Override
