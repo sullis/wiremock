@@ -31,6 +31,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.common.InputStreamSource;
+import com.github.tomakehurst.wiremock.common.StreamSources;
 import com.github.tomakehurst.wiremock.core.Options;
 import com.github.tomakehurst.wiremock.junit5.EnabledIfJettyVersion;
 import com.github.tomakehurst.wiremock.standalone.MappingFileException;
@@ -46,6 +48,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.UUID;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import java.util.zip.GZIPInputStream;
@@ -110,6 +113,18 @@ public class StandaloneAcceptanceTest {
         get(urlEqualTo("/standalone/test/resource"))
             .willReturn(aResponse().withStatus(200).withBody("Content")));
     assertThat(testClient.get("/standalone/test/resource").content(), is("Content"));
+  }
+
+  @Test
+  void bodySourceResponse() {
+    final int size = 10;
+    InputStreamSource bodySource = StreamSources.forRepeatingCharacter('a', size);
+    final String path = "/" + UUID.randomUUID().toString();
+    startRunner();
+    givenThat(
+        get(urlEqualTo(path))
+            .willReturn(aResponse().withStatus(200).withBodySource(bodySource)));
+    assertThat(testClient.get(path).content(), is("a".repeat(size)));
   }
 
   private static final String MAPPING_REQUEST =

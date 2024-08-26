@@ -43,6 +43,7 @@ public class ResponseDefinition {
   private final String statusMessage;
   private final Body body;
   private final String bodyFileName;
+  @JsonIgnore
   private final InputStreamSource bodySource;
   private final HttpHeaders headers;
   private final HttpHeaders additionalProxyRequestHeaders;

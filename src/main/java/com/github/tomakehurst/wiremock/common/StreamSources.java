@@ -18,6 +18,7 @@ package com.github.tomakehurst.wiremock.common;
 import com.github.tomakehurst.wiremock.admin.NotFoundException;
 import com.github.tomakehurst.wiremock.store.BlobStore;
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 
@@ -26,6 +27,10 @@ public class StreamSources {
 
   public static InputStreamSource forString(final String string, final Charset charset) {
     return new StringInputStreamSource(string, charset);
+  }
+
+  public static InputStreamSource forRepeatingCharacter(final char c, final int size) {
+    return new FixedSizeInputStreamSource(size, c);
   }
 
   public static InputStreamSource forBytes(final byte[] bytes) {
@@ -37,6 +42,46 @@ public class StreamSources {
         blobStore
             .getStream(key)
             .orElseThrow(() -> new NotFoundException("Not found in blob store: " + key));
+  }
+
+  public static class FixedSizeInputStreamSource implements InputStreamSource {
+    private final int count;
+    private final char c;
+
+    public FixedSizeInputStreamSource(int count, char c) {
+      this.count = count;
+      this.c = c;
+    }
+
+      @Override
+      public InputStream getStream() {
+        return new FixedSizeInputStream(c, count);
+      }
+  };
+
+  private static class FixedSizeInputStream extends InputStream {
+    private long count = 0;
+    private final char c;
+    private final long size;
+
+    public FixedSizeInputStream(char c, long size) {
+      if (size < 1) {
+        throw new IllegalArgumentException("size=" + size);
+      }
+      this.c = c;
+      this.size = size;
+    }
+
+    @Override
+    public int read()
+        throws IOException {
+      if (count >= size) {
+        return -1;
+      } else {
+        count++;
+        return c;
+      }
+    }
   }
 
   public static class StringInputStreamSource extends ByteArrayInputStreamSource {
