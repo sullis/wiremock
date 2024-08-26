@@ -28,6 +28,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import com.github.tomakehurst.wiremock.common.Errors;
+import com.github.tomakehurst.wiremock.common.InputStreamSource;
 import com.github.tomakehurst.wiremock.common.Json;
 import com.github.tomakehurst.wiremock.extension.Extension;
 import com.github.tomakehurst.wiremock.extension.Parameters;
@@ -42,6 +43,7 @@ public class ResponseDefinition {
   private final String statusMessage;
   private final Body body;
   private final String bodyFileName;
+  private final InputStreamSource bodySource;
   private final HttpHeaders headers;
   private final HttpHeaders additionalProxyRequestHeaders;
   private final List<String> removeProxyRequestHeaders;
@@ -66,6 +68,7 @@ public class ResponseDefinition {
       @JsonProperty("jsonBody") JsonNode jsonBody,
       @JsonProperty("base64Body") String base64Body,
       @JsonProperty("bodyFileName") String bodyFileName,
+      InputStreamSource bodySource,
       @JsonProperty("headers") HttpHeaders headers,
       @JsonProperty("additionalProxyRequestHeaders") HttpHeaders additionalProxyRequestHeaders,
       @JsonProperty("removeProxyRequestHeaders") List<String> removeProxyRequestHeaders,
@@ -83,6 +86,7 @@ public class ResponseDefinition {
         statusMessage,
         Body.fromOneOf(null, body, jsonBody, base64Body),
         bodyFileName,
+        bodySource,
         headers,
         additionalProxyRequestHeaders,
         removeProxyRequestHeaders,
@@ -104,6 +108,7 @@ public class ResponseDefinition {
       JsonNode jsonBody,
       String base64Body,
       String bodyFileName,
+      InputStreamSource bodySource,
       HttpHeaders headers,
       HttpHeaders additionalProxyRequestHeaders,
       List<String> removeProxyRequestHeaders,
@@ -121,6 +126,7 @@ public class ResponseDefinition {
         statusMessage,
         Body.fromOneOf(body, null, jsonBody, base64Body),
         bodyFileName,
+        bodySource,
         headers,
         additionalProxyRequestHeaders,
         removeProxyRequestHeaders,
@@ -140,6 +146,7 @@ public class ResponseDefinition {
       String statusMessage,
       Body body,
       String bodyFileName,
+      InputStreamSource bodySource,
       HttpHeaders headers,
       HttpHeaders additionalProxyRequestHeaders,
       List<String> removeProxyRequestHeaders,
@@ -157,6 +164,7 @@ public class ResponseDefinition {
 
     this.body = body;
     this.bodyFileName = bodyFileName;
+    this.bodySource = bodySource;
 
     this.headers = headers;
     this.additionalProxyRequestHeaders = additionalProxyRequestHeaders;
@@ -187,6 +195,7 @@ public class ResponseDefinition {
         null,
         null,
         null,
+        null,
         Collections.emptyList(),
         Parameters.empty(),
         true);
@@ -207,6 +216,7 @@ public class ResponseDefinition {
         null,
         null,
         null,
+        null,
         Collections.emptyList(),
         Parameters.empty(),
         true);
@@ -217,6 +227,7 @@ public class ResponseDefinition {
         HTTP_OK,
         null,
         Body.none(),
+        null,
         null,
         null,
         null,
@@ -314,6 +325,7 @@ public class ResponseDefinition {
             this.statusMessage,
             this.body,
             this.bodyFileName,
+            this.bodySource,
             this.headers,
             this.additionalProxyRequestHeaders,
             this.removeProxyRequestHeaders,
@@ -386,6 +398,10 @@ public class ResponseDefinition {
     return bodyFileName;
   }
 
+  public InputStreamSource getBodySource() {
+    return bodySource;
+  }
+
   public boolean wasConfigured() {
     return wasConfigured == null || wasConfigured;
   }
@@ -428,6 +444,11 @@ public class ResponseDefinition {
   @JsonIgnore
   public boolean specifiesBodyFile() {
     return bodyFileName != null && body.isAbsent();
+  }
+
+  @JsonIgnore
+  public boolean specifiesBodySource() {
+    return bodySource != null && body.isAbsent();
   }
 
   @JsonIgnore

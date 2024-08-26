@@ -22,6 +22,7 @@ import static java.net.HttpURLConnection.HTTP_OK;
 import static java.util.Arrays.asList;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.github.tomakehurst.wiremock.common.InputStreamSource;
 import com.github.tomakehurst.wiremock.common.Json;
 import com.github.tomakehurst.wiremock.extension.Parameters;
 import com.github.tomakehurst.wiremock.http.*;
@@ -36,6 +37,7 @@ public class ResponseDefinitionBuilder {
   protected String statusMessage;
   protected Body body = Body.none();
   protected String bodyFileName;
+  protected InputStreamSource bodySource;
   protected List<HttpHeader> headers = new ArrayList<>();
   protected Integer fixedDelayMilliseconds;
   protected DelayDistribution delayDistribution;
@@ -118,6 +120,11 @@ public class ResponseDefinitionBuilder {
 
   public ResponseDefinitionBuilder withBodyFile(String fileName) {
     this.bodyFileName = fileName;
+    return this;
+  }
+
+  public ResponseDefinitionBuilder withBodySource(InputStreamSource source) {
+    this.bodySource = source;
     return this;
   }
 
@@ -303,6 +310,7 @@ public class ResponseDefinitionBuilder {
         statusMessage,
         body,
         bodyFileName,
+        bodySource,
         httpHeaders,
         additionalProxyRequestHeaders,
         removeProxyRequestHeaders,

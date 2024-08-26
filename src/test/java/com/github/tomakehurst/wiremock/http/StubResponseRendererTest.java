@@ -122,6 +122,7 @@ public class StubResponseRendererTest {
             null,
             null,
             null,
+            null,
             fixedDelayMillis,
             null,
             null,
