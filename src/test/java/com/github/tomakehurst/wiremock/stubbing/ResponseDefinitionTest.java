@@ -45,7 +45,6 @@ public class ResponseDefinitionTest {
             null,
             null,
             "name.json",
-            null,
             new HttpHeaders(httpHeader("thing", "thingvalue")),
             null,
             null,
